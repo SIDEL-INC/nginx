@@ -17,9 +17,6 @@ static ngx_int_t ngx_http_send_special_response(ngx_http_request_t *r,
     ngx_http_core_loc_conf_t *clcf, ngx_uint_t err);
 static ngx_int_t ngx_http_send_refresh(ngx_http_request_t *r);
 
-static u_char ngx_http_msie_padding[] = "";
-
-
 static u_char ngx_http_msie_refresh_head[] =
 "<html><head><meta http-equiv=\"Refresh\" content=\"0; URL=";
 
@@ -364,27 +361,12 @@ static ngx_int_t
 ngx_http_send_special_response(ngx_http_request_t *r,
     ngx_http_core_loc_conf_t *clcf, ngx_uint_t err)
 {
-    u_char       *tail;
-    size_t        len;
     ngx_int_t     rc;
     ngx_buf_t    *b;
-    ngx_uint_t    msie_padding;
     ngx_chain_t   out[3];
 
-    msie_padding = 0;
-
     if (ngx_http_error_pages[err].len) {
-        r->headers_out.content_length_n = ngx_http_error_pages[err].len + len;
-        if (clcf->msie_padding
-            && (r->headers_in.msie || r->headers_in.chrome)
-            && r->http_version >= NGX_HTTP_VERSION_10
-            && err >= NGX_HTTP_OFF_4XX)
-        {
-            r->headers_out.content_length_n +=
-                                         sizeof(ngx_http_msie_padding) - 1;
-            msie_padding = 1;
-        }
-
+        r->headers_out.content_length_n = ngx_http_error_pages[err].len;
         r->headers_out.content_type_len = sizeof("text/html") - 1;
         ngx_str_set(&r->headers_out.content_type, "text/html");
         r->headers_out.content_type_lowcase = NULL;
@@ -431,26 +413,8 @@ ngx_http_send_special_response(ngx_http_request_t *r,
 
     b->memory = 1;
 
-    b->pos = tail;
-    b->last = tail + len;
-
     out[1].buf = b;
     out[1].next = NULL;
-
-    if (msie_padding) {
-        b = ngx_calloc_buf(r->pool);
-        if (b == NULL) {
-            return NGX_ERROR;
-        }
-
-        b->memory = 1;
-        b->pos = ngx_http_msie_padding;
-        b->last = ngx_http_msie_padding + sizeof(ngx_http_msie_padding) - 1;
-
-        out[1].next = &out[2];
-        out[2].buf = b;
-        out[2].next = NULL;
-    }
 
     if (r == r->main) {
         b->last_buf = 1;
