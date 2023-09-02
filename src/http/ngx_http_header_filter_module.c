@@ -46,6 +46,11 @@ ngx_module_t  ngx_http_header_filter_module = {
 };
 
 
+static u_char ngx_http_server_string[] = "Server: nginx" CRLF;
+static u_char ngx_http_server_full_string[] = "Server: " NGINX_VER CRLF;
+static u_char ngx_http_server_build_string[] = "Server: " NGINX_VER_BUILD CRLF;
+
+
 static ngx_str_t ngx_http_status_lines[] = {
 
     ngx_string("200 OK"),
@@ -278,6 +283,18 @@ ngx_http_header_filter(ngx_http_request_t *r)
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
+    if (r->headers_out.server == NULL) {
+        if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
+            len += sizeof(ngx_http_server_full_string) - 1;
+
+        } else if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_BUILD) {
+            len += sizeof(ngx_http_server_build_string) - 1;
+
+        } else {
+            len += sizeof(ngx_http_server_string) - 1;
+        }
+    }
+
     if (r->headers_out.date == NULL) {
         len += sizeof("Date: Mon, 28 Sep 1970 06:00:00 GMT" CRLF) - 1;
     }
@@ -434,6 +451,23 @@ ngx_http_header_filter(ngx_http_request_t *r)
         b->last = ngx_sprintf(b->last, "%03ui ", status);
     }
     *b->last++ = CR; *b->last++ = LF;
+
+    if (r->headers_out.server == NULL) {
+        if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
+            p = ngx_http_server_full_string;
+            len = sizeof(ngx_http_server_full_string) - 1;
+
+        } else if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_BUILD) {
+            p = ngx_http_server_build_string;
+            len = sizeof(ngx_http_server_build_string) - 1;
+
+        } else {
+            p = ngx_http_server_string;
+            len = sizeof(ngx_http_server_string) - 1;
+        }
+
+        b->last = ngx_cpymem(b->last, p, len);
+    }
 
     if (r->headers_out.date == NULL) {
         b->last = ngx_cpymem(b->last, "Date: ", sizeof("Date: ") - 1);
