@@ -1,6 +1,5 @@
 FROM alpine:3.20 AS build
-ARG CACHEBUST=1
- 
+
 LABEL title="nginx modification for SIDEL Incorporated."
 LABEL maintainer="Kangjun Heo <kheo@sidelcorp.com>"
 
@@ -15,8 +14,15 @@ RUN ./build.sh
 RUN make install
 
 FROM alpine:3.20 AS prod
+
+COPY --from=build /sbin/nginx /sbin/nginx
 COPY --from=build /opt/nginx /opt/nginx
+RUN  mkdir /logs
 
 RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
 
-ENTRYPOINT /opt/nginx/sbin/nginx -g "daemon off;"
+RUN adduser user --disabled-password
+RUN chown -R user:user /logs
+
+USER user
+ENTRYPOINT nginx -g "daemon off;"
