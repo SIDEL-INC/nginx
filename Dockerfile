@@ -24,7 +24,7 @@ RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
 
 RUN adduser user --disabled-password
 RUN chown -R user:user /logs
-RUN chmod +w /run/ws
+RUN chmod o+w /run/ws
 
 USER user
 ENTRYPOINT nginx -g "daemon off;"
