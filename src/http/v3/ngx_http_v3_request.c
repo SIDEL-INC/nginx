@@ -58,30 +58,20 @@ static const struct {
 void
 ngx_http_v3_init_stream(ngx_connection_t *c)
 {
-    ngx_http_v3_session_t     *h3c;
     ngx_http_connection_t     *hc, *phc;
     ngx_http_v3_srv_conf_t    *h3scf;
     ngx_http_core_loc_conf_t  *clcf;
-    ngx_http_core_srv_conf_t  *cscf;
 
     hc = c->data;
 
     hc->ssl = 1;
 
     clcf = ngx_http_get_module_loc_conf(hc->conf_ctx, ngx_http_core_module);
-    cscf = ngx_http_get_module_srv_conf(hc->conf_ctx, ngx_http_core_module);
-    h3scf = ngx_http_get_module_srv_conf(hc->conf_ctx, ngx_http_v3_module);
 
     if (c->quic == NULL) {
-        if (ngx_http_v3_init_session(c) != NGX_OK) {
-            ngx_http_close_connection(c);
-            return;
-        }
+        h3scf = ngx_http_get_module_srv_conf(hc->conf_ctx, ngx_http_v3_module);
+        h3scf->quic.idle_timeout = clcf->keepalive_timeout;
 
-        h3c = hc->v3_session;
-        ngx_add_timer(&h3c->keepalive, cscf->client_header_timeout);
-
-        h3scf->quic.timeout = clcf->keepalive_timeout;
         ngx_quic_run(c, &h3scf->quic);
         return;
     }
@@ -118,6 +108,10 @@ ngx_http_v3_init(ngx_connection_t *c)
 
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, c->log, 0, "http3 init");
 
+    if (ngx_http_v3_init_session(c) != NGX_OK) {
+        return NGX_ERROR;
+    }
+
     h3c = ngx_http_v3_get_session(c);
     clcf = ngx_http_v3_get_module_loc_conf(c, ngx_http_core_module);
     ngx_add_timer(&h3c->keepalive, clcf->keepalive_timeout);
@@ -140,7 +134,17 @@ ngx_http_v3_init(ngx_connection_t *c)
         }
     }
 
-    return ngx_http_v3_send_settings(c);
+    if (ngx_http_v3_send_settings(c) != NGX_OK) {
+        return NGX_ERROR;
+    }
+
+    if (h3scf->max_table_capacity > 0) {
+        if (ngx_http_v3_get_uni_stream(c, NGX_HTTP_V3_STREAM_DECODER) == NULL) {
+            return NGX_ERROR;
+        }
+    }
+
+    return NGX_OK;
 }
 
 
@@ -404,14 +408,12 @@ ngx_http_v3_wait_request_handler(ngx_event_t *rev)
 void
 ngx_http_v3_reset_stream(ngx_connection_t *c)
 {
-    ngx_http_v3_session_t   *h3c;
-    ngx_http_v3_srv_conf_t  *h3scf;
-
-    h3scf = ngx_http_v3_get_module_srv_conf(c, ngx_http_v3_module);
+    ngx_http_v3_session_t  *h3c;
 
     h3c = ngx_http_v3_get_session(c);
 
-    if (h3scf->max_table_capacity > 0 && !c->read->eof && !h3c->hq
+    if (!c->read->eof && !h3c->hq
+        && h3c->known_streams[NGX_HTTP_V3_STREAM_SERVER_DECODER]
         && (c->quic->id & NGX_QUIC_STREAM_UNIDIRECTIONAL) == 0)
     {
         (void) ngx_http_v3_send_cancel_stream(c, c->quic->id);

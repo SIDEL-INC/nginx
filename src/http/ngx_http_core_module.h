@@ -399,6 +399,8 @@ struct ngx_http_core_loc_conf_s {
     ngx_flag_t    absolute_redirect;       /* absolute_redirect */
     ngx_flag_t    server_name_in_redirect; /* server_name_in_redirect */
     ngx_flag_t    port_in_redirect;        /* port_in_redirect */
+    ngx_flag_t    msie_padding;            /* msie_padding */
+    ngx_flag_t    msie_refresh;            /* msie_refresh */
     ngx_flag_t    log_not_found;           /* log_not_found */
     ngx_flag_t    log_subrequest;          /* log_subrequest */
     ngx_flag_t    recursive_error_pages;   /* recursive_error_pages */

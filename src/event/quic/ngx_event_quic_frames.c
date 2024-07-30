@@ -648,6 +648,7 @@ ngx_quic_free_buffer(ngx_connection_t *c, ngx_quic_buffer_t *qb)
     ngx_quic_free_chain(c, qb->chain);
 
     qb->chain = NULL;
+    qb->last_chain = NULL;
 }
 
 
@@ -886,8 +887,8 @@ ngx_quic_log_frame(ngx_log_t *log, ngx_quic_frame_t *f, ngx_uint_t tx)
         break;
     }
 
-    ngx_log_debug4(NGX_LOG_DEBUG_EVENT, log, 0, "quic frame %s %s %*s",
-                   tx ? "tx" : "rx", ngx_quic_level_name(f->level),
+    ngx_log_debug5(NGX_LOG_DEBUG_EVENT, log, 0, "quic frame %s %s:%uL %*s",
+                   tx ? "tx" : "rx", ngx_quic_level_name(f->level), f->pnum,
                    p - buf, buf);
 }
 

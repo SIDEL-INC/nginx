@@ -8,6 +8,8 @@ if [ $OPENSSL != NONE ]; then
     have=NGX_OPENSSL . auto/have
     have=NGX_SSL . auto/have
 
+    have=NGX_OPENSSL_NO_CONFIG . auto/have
+
     if [ $USE_OPENSSL_QUIC = YES ]; then
         have=NGX_QUIC . auto/have
         have=NGX_QUIC_OPENSSL_COMPAT . auto/have
@@ -113,6 +115,24 @@ else
                 ngx_feature_libs="-R/opt/local/lib -L/opt/local/lib -lssl -lcrypto"
             else
                 ngx_feature_libs="-L/opt/local/lib -lssl -lcrypto"
+            fi
+
+            ngx_feature_libs="$ngx_feature_libs $NGX_LIBDL $NGX_LIBPTHREAD"
+
+            . auto/feature
+        fi
+
+        if [ $ngx_found = no ]; then
+
+            # Homebrew on Apple Silicon
+
+            ngx_feature="OpenSSL library in /opt/homebrew/"
+            ngx_feature_path="/opt/homebrew/include"
+
+            if [ $NGX_RPATH = YES ]; then
+                ngx_feature_libs="-R/opt/homebrew/lib -L/opt/homebrew/lib -lssl -lcrypto"
+            else
+                ngx_feature_libs="-L/opt/homebrew/lib -lssl -lcrypto"
             fi
 
             ngx_feature_libs="$ngx_feature_libs $NGX_LIBDL $NGX_LIBPTHREAD"

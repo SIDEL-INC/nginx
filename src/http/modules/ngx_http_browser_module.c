@@ -48,6 +48,8 @@ typedef struct {
 } ngx_http_browser_conf_t;
 
 
+static ngx_int_t ngx_http_msie_variable(ngx_http_request_t *r,
+    ngx_http_variable_value_t *v, uintptr_t data);
 static ngx_int_t ngx_http_browser_variable(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
 
@@ -211,6 +213,9 @@ static ngx_http_modern_browser_mask_t  ngx_http_modern_browser_masks[] = {
 
 static ngx_http_variable_t  ngx_http_browser_vars[] = {
 
+    { ngx_string("msie"), NULL, ngx_http_msie_variable,
+      0, NGX_HTTP_VAR_CHANGEABLE, 0 },
+
     { ngx_string("modern_browser"), NULL, ngx_http_browser_variable,
       NGX_HTTP_MODERN_BROWSER, NGX_HTTP_VAR_CHANGEABLE, 0 },
 
@@ -373,6 +378,21 @@ ngx_http_browser(ngx_http_request_t *r, ngx_http_browser_conf_t *cf)
 
     return NGX_HTTP_ANCIENT_BROWSER;
 }
+
+
+static ngx_int_t
+ngx_http_msie_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
+    uintptr_t data)
+{
+    if (r->headers_in.msie) {
+        *v = ngx_http_variable_true_value;
+        return NGX_OK;
+    }
+
+    *v = ngx_http_variable_null_value;
+    return NGX_OK;
+}
+
 
 static ngx_int_t
 ngx_http_browser_add_variables(ngx_conf_t *cf)

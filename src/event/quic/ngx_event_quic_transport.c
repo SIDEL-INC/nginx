@@ -1135,6 +1135,9 @@ ngx_quic_parse_frame(ngx_quic_header_t *pkt, u_char *start, u_char *end,
     }
 
     f->level = pkt->level;
+#if (NGX_DEBUG)
+    f->pnum = pkt->pn;
+#endif
 
     return p - start;
 
@@ -1747,6 +1750,14 @@ ngx_quic_parse_transport_params(u_char *p, u_char *end, ngx_quic_tp_t *tp,
             return NGX_ERROR;
         }
 
+        if ((size_t) (end - p) < len) {
+            ngx_log_error(NGX_LOG_INFO, log, 0,
+                          "quic failed to parse"
+                          " transport param id:0x%xL, data length %uL too long",
+                          id, len);
+            return NGX_ERROR;
+        }
+
         rc = ngx_quic_parse_transport_param(p, p + len, id, tp);
 
         if (rc == NGX_ERROR) {
@@ -1985,7 +1996,7 @@ ngx_quic_init_transport_params(ngx_quic_tp_t *tp, ngx_quic_conf_t *qcf)
      *     tp->preferred_address = NULL
      */
 
-    tp->max_idle_timeout = qcf->timeout;
+    tp->max_idle_timeout = qcf->idle_timeout;
 
     tp->max_udp_payload_size = NGX_QUIC_MAX_UDP_PAYLOAD_SIZE;
 
