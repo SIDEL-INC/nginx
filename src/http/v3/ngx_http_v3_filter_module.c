@@ -158,22 +158,6 @@ ngx_http_v3_header_filter(ngx_http_request_t *r)
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
-    if (r->headers_out.server == NULL) {
-        if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
-            n = sizeof(NGINX_VER) - 1;
-
-        } else if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_BUILD) {
-            n = sizeof(NGINX_VER_BUILD) - 1;
-
-        } else {
-            n = sizeof("nginx") - 1;
-        }
-
-        len += ngx_http_v3_encode_field_lri(NULL, 0,
-                                            NGX_HTTP_V3_HEADER_SERVER,
-                                            NULL, n);
-    }
-
     if (r->headers_out.date == NULL) {
         len += ngx_http_v3_encode_field_lri(NULL, 0, NGX_HTTP_V3_HEADER_DATE,
                                             NULL, ngx_cached_http_time.len);
