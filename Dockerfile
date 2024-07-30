@@ -18,11 +18,13 @@ FROM alpine:3.20 AS prod
 COPY --from=build /sbin/nginx /sbin/nginx
 COPY --from=build /opt/nginx /opt/nginx
 RUN  mkdir /logs
+RUN  mkdir /run/ws
 
 RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
 
 RUN adduser user --disabled-password
 RUN chown -R user:user /logs
+RUN chmod +w /run/ws
 
 USER user
 ENTRYPOINT nginx -g "daemon off;"
