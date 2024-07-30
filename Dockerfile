@@ -1,11 +1,13 @@
-FROM alpine:3.20 AS build 
+FROM alpine:3.20 AS build
+ARG CACHEBUST=1
+ 
 LABEL title="nginx modification for SIDEL Incorporated."
 LABEL maintainer="Kangjun Heo <kheo@sidelcorp.com>"
 
 RUN apk --update add git alpine-sdk
 RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
 
-RUN git clone https://github.com/SIDEL-INC/nginx
+RUN git clone https://github.com/SIDEL-INC/nginx 
 WORKDIR /nginx
 RUN chmod +x build.sh
 RUN ./build.sh
