@@ -1,4 +1,26 @@
 #!/bin/sh
+
+. /etc/os-release
+
+#install dependencies
+case $ID in
+	debian|ubuntu) sudo apt-get install -y libpcre3 libpcre3-dev
+  ;;
+
+	redhat|rocky|ol) sudo dnf install -y pcre pcre-devel
+  ;;
+
+	*) echo "Unknown distribution; skipping"
+  ;;
+esac
+
+MODULES=--with-http_ssl_module --with-http_v2_module --with-http_v3_module --without-mail_pop3_module --without-mail_imap_module --without-mail_smtp_module --without-http_fastcgi_module --without-http_uwsgi_module --without-http_scgi_module
+PREFIX=/opt/webserver
+SBIN=/sbin/webserver
+LOGPATH=/var/log/webserver
+TMPPATH=/tmp
+PIDPATH=/run/webserver
+
 make clean
-./configure --with-http_ssl_module --with-http_v2_module --with-http_v3_module --without-mail_pop3_module --without-mail_imap_module --without-mail_smtp_module --without-http_fastcgi_module --without-http_uwsgi_module --without-http_scgi_module --prefix=/opt/nginx --sbin-path=/sbin/nginx --http-client-body-temp-path=/tmp/body_temp --http-log-path=/logs/server.log --error-log-path=/logs/error.log --http-proxy-temp-path=/tmp/proxy_temp --pid-path=/run/ws/.pid --lock-path=/run/ws/.lock
+./configure --prefix=$PREFIX --sbin-path=$SBIN --http-client-body-temp-path=$TMPPATH/body_temp --http-log-path=$LOGPATH/server.log --error-log-path=$LOGPATH/error.log --http-proxy-temp-path=$TMPPATH/proxy_temp --pid-path=$PIDPATH/.pid --lock-path=$PIDPATH/.lock
 make -j $(nproc)
