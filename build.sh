@@ -14,10 +14,10 @@ case $ID in
   ;;
 esac
 
-MODULES="--with-http_ssl_module --with-http_v2_module --with-http_v3_module --without-mail_pop3_module --without-mail_imap_module --without-mail_smtp_module --without-http_fastcgi_module --without-http_uwsgi_module --without-http_scgi_module"
+MODULES="--with-http_realip_module --with-http_ssl_module --with-http_v2_module --with-http_v3_module --without-mail_pop3_module --without-mail_imap_module --without-mail_smtp_module --without-http_fastcgi_module --without-http_uwsgi_module --without-http_scgi_module"
 PREFIX=/opt/webserver
-SBIN=/sbin/webserver
-LOGPATH=/var/log/webserver
+SBIN=/sbin/ws
+LOGPATH=/opt/webserver/logs
 TMPPATH=/tmp
 PIDPATH=/run/webserver
 
