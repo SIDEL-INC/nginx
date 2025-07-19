@@ -119,19 +119,11 @@ ngx_http_v2_header_filter(ngx_http_request_t *r)
     ngx_http_core_srv_conf_t  *cscf;
     u_char                     addr[NGX_SOCKADDR_STRLEN];
 
-    static const u_char nginx[5] = { 0x84, 0xaa, 0x63, 0x55, 0xe7 };
 #if (NGX_HTTP_GZIP)
     static const u_char accept_encoding[12] = {
         0x8b, 0x84, 0x84, 0x2d, 0x69, 0x5b, 0x05, 0x44, 0x3c, 0x86, 0xaa, 0x6f
     };
 #endif
-
-    static size_t nginx_ver_len = ngx_http_v2_literal_size(NGINX_VER);
-    static u_char nginx_ver[ngx_http_v2_literal_size(NGINX_VER)];
-
-    static size_t nginx_ver_build_len =
-                                  ngx_http_v2_literal_size(NGINX_VER_BUILD);
-    static u_char nginx_ver_build[ngx_http_v2_literal_size(NGINX_VER_BUILD)];
 
     stream = r->stream;
 
