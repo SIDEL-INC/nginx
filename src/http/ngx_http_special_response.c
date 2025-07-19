@@ -15,6 +15,25 @@ static ngx_int_t ngx_http_send_error_page(ngx_http_request_t *r,
     ngx_http_err_page_t *err_page);
 static ngx_int_t ngx_http_send_special_response(ngx_http_request_t *r,
     ngx_http_core_loc_conf_t *clcf, ngx_uint_t err);
+static ngx_int_t ngx_http_send_refresh(ngx_http_request_t *r);
+
+
+static u_char ngx_http_error_full_tail[] = ""; 
+
+static u_char ngx_http_error_build_tail[] = "";
+
+
+static u_char ngx_http_error_tail[] = "";
+
+
+static u_char ngx_http_msie_padding[] = "";
+
+
+static u_char ngx_http_msie_refresh_head[] = "";
+
+
+static u_char ngx_http_msie_refresh_tail[] = "";
+
 
 static ngx_str_t ngx_http_error_pages[] = {
 
@@ -151,6 +170,14 @@ ngx_http_special_response_handler(ngx_http_request_t *r, ngx_int_t error)
 
     if (ngx_http_discard_request_body(r) != NGX_OK) {
         r->keepalive = 0;
+    }
+
+    if (clcf->msie_refresh
+        && r->headers_in.msie
+        && (error == NGX_HTTP_MOVED_PERMANENTLY
+            || error == NGX_HTTP_MOVED_TEMPORARILY))
+    {
+        return ngx_http_send_refresh(r);
     }
 
     if (error == NGX_HTTP_CREATED) {
@@ -330,6 +357,10 @@ ngx_http_send_error_page(ngx_http_request_t *r, ngx_http_err_page_t *err_page)
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
+    if (clcf->msie_refresh && r->headers_in.msie) {
+        return ngx_http_send_refresh(r);
+    }
+
     return ngx_http_send_special_response(r, clcf, r->err_status
                                                    - NGX_HTTP_MOVED_PERMANENTLY
                                                    + NGX_HTTP_OFF_3XX);
@@ -340,12 +371,40 @@ static ngx_int_t
 ngx_http_send_special_response(ngx_http_request_t *r,
     ngx_http_core_loc_conf_t *clcf, ngx_uint_t err)
 {
+    u_char       *tail;
+    size_t        len;
     ngx_int_t     rc;
     ngx_buf_t    *b;
+    ngx_uint_t    msie_padding;
     ngx_chain_t   out[3];
 
+    if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
+        len = sizeof(ngx_http_error_full_tail) - 1;
+        tail = ngx_http_error_full_tail;
+
+    } else if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_BUILD) {
+        len = sizeof(ngx_http_error_build_tail) - 1;
+        tail = ngx_http_error_build_tail;
+
+    } else {
+        len = sizeof(ngx_http_error_tail) - 1;
+        tail = ngx_http_error_tail;
+    }
+
+    msie_padding = 0;
+
     if (ngx_http_error_pages[err].len) {
-        r->headers_out.content_length_n = ngx_http_error_pages[err].len;
+        r->headers_out.content_length_n = ngx_http_error_pages[err].len + len;
+        if (clcf->msie_padding
+            && (r->headers_in.msie || r->headers_in.chrome)
+            && r->http_version >= NGX_HTTP_VERSION_10
+            && err >= NGX_HTTP_OFF_4XX)
+        {
+            r->headers_out.content_length_n +=
+                                         sizeof(ngx_http_msie_padding) - 1;
+            msie_padding = 1;
+        }
+
         r->headers_out.content_type_len = sizeof("text/html") - 1;
         ngx_str_set(&r->headers_out.content_type, "text/html");
         r->headers_out.content_type_lowcase = NULL;
@@ -392,8 +451,26 @@ ngx_http_send_special_response(ngx_http_request_t *r,
 
     b->memory = 1;
 
+    b->pos = tail;
+    b->last = tail + len;
+
     out[1].buf = b;
     out[1].next = NULL;
+
+    if (msie_padding) {
+        b = ngx_calloc_buf(r->pool);
+        if (b == NULL) {
+            return NGX_ERROR;
+        }
+
+        b->memory = 1;
+        b->pos = ngx_http_msie_padding;
+        b->last = ngx_http_msie_padding + sizeof(ngx_http_msie_padding) - 1;
+
+        out[1].next = &out[2];
+        out[2].buf = b;
+        out[2].next = NULL;
+    }
 
     if (r == r->main) {
         b->last_buf = 1;
@@ -402,4 +479,77 @@ ngx_http_send_special_response(ngx_http_request_t *r,
     b->last_in_chain = 1;
 
     return ngx_http_output_filter(r, &out[0]);
+}
+
+
+static ngx_int_t
+ngx_http_send_refresh(ngx_http_request_t *r)
+{
+    u_char       *p, *location;
+    size_t        len, size;
+    uintptr_t     escape;
+    ngx_int_t     rc;
+    ngx_buf_t    *b;
+    ngx_chain_t   out;
+
+    len = r->headers_out.location->value.len;
+    location = r->headers_out.location->value.data;
+
+    escape = 2 * ngx_escape_uri(NULL, location, len, NGX_ESCAPE_REFRESH);
+
+    size = sizeof(ngx_http_msie_refresh_head) - 1
+           + escape + len
+           + sizeof(ngx_http_msie_refresh_tail) - 1;
+
+    r->err_status = NGX_HTTP_OK;
+
+    r->headers_out.content_type_len = sizeof("text/html") - 1;
+    ngx_str_set(&r->headers_out.content_type, "text/html");
+    r->headers_out.content_type_lowcase = NULL;
+
+    r->headers_out.location->hash = 0;
+    r->headers_out.location = NULL;
+
+    r->headers_out.content_length_n = size;
+
+    if (r->headers_out.content_length) {
+        r->headers_out.content_length->hash = 0;
+        r->headers_out.content_length = NULL;
+    }
+
+    ngx_http_clear_accept_ranges(r);
+    ngx_http_clear_last_modified(r);
+    ngx_http_clear_etag(r);
+
+    rc = ngx_http_send_header(r);
+
+    if (rc == NGX_ERROR || r->header_only) {
+        return rc;
+    }
+
+    b = ngx_create_temp_buf(r->pool, size);
+    if (b == NULL) {
+        return NGX_ERROR;
+    }
+
+    p = ngx_cpymem(b->pos, ngx_http_msie_refresh_head,
+                   sizeof(ngx_http_msie_refresh_head) - 1);
+
+    if (escape == 0) {
+        p = ngx_cpymem(p, location, len);
+
+    } else {
+        p = (u_char *) ngx_escape_uri(p, location, len, NGX_ESCAPE_REFRESH);
+    }
+
+    b->last = ngx_cpymem(p, ngx_http_msie_refresh_tail,
+                         sizeof(ngx_http_msie_refresh_tail) - 1);
+
+    b->last_buf = (r == r->main) ? 1 : 0;
+    b->last_in_chain = 1;
+
+    out.buf = b;
+    out.next = NULL;
+
+    return ngx_http_output_filter(r, &out);
 }

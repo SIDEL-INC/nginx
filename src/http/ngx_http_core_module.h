@@ -370,6 +370,7 @@ struct ngx_http_core_loc_conf_s {
     ngx_msec_t    send_timeout;            /* send_timeout */
     ngx_msec_t    keepalive_time;          /* keepalive_time */
     ngx_msec_t    keepalive_timeout;       /* keepalive_timeout */
+    ngx_msec_t    keepalive_min_timeout;   /* keepalive_min_timeout */
     ngx_msec_t    lingering_time;          /* lingering_time */
     ngx_msec_t    lingering_timeout;       /* lingering_timeout */
     ngx_msec_t    resolver_timeout;        /* resolver_timeout */
@@ -399,6 +400,8 @@ struct ngx_http_core_loc_conf_s {
     ngx_flag_t    absolute_redirect;       /* absolute_redirect */
     ngx_flag_t    server_name_in_redirect; /* server_name_in_redirect */
     ngx_flag_t    port_in_redirect;        /* port_in_redirect */
+    ngx_flag_t    msie_padding;            /* msie_padding */
+    ngx_flag_t    msie_refresh;            /* msie_refresh */
     ngx_flag_t    log_not_found;           /* log_not_found */
     ngx_flag_t    log_subrequest;          /* log_subrequest */
     ngx_flag_t    recursive_error_pages;   /* recursive_error_pages */
@@ -426,6 +429,8 @@ struct ngx_http_core_loc_conf_s {
     ngx_uint_t    disable_symlinks;        /* disable_symlinks */
     ngx_http_complex_value_t  *disable_symlinks_from;
 #endif
+
+    ngx_array_t  *early_hints;             /* early_hints */
 
     ngx_array_t  *error_pages;             /* error_page */
 

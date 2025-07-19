@@ -174,7 +174,7 @@ ngx_int_t
 ngx_quic_close_streams(ngx_connection_t *c, ngx_quic_connection_t *qc)
 {
     ngx_pool_t         *pool;
-    ngx_queue_t        *q;
+    ngx_queue_t        *q, posted_events;
     ngx_rbtree_t       *tree;
     ngx_connection_t   *sc;
     ngx_rbtree_node_t  *node;
@@ -197,6 +197,8 @@ ngx_quic_close_streams(ngx_connection_t *c, ngx_quic_connection_t *qc)
         return NGX_OK;
     }
 
+    ngx_queue_init(&posted_events);
+
     node = ngx_rbtree_min(tree->root, tree->sentinel);
 
     while (node) {
@@ -213,14 +215,20 @@ ngx_quic_close_streams(ngx_connection_t *c, ngx_quic_connection_t *qc)
         }
 
         sc->read->error = 1;
+        sc->read->ready = 1;
         sc->write->error = 1;
-
-        ngx_quic_set_event(sc->read);
-        ngx_quic_set_event(sc->write);
+        sc->write->ready = 1;
 
         sc->close = 1;
-        sc->read->handler(sc->read);
+
+        if (sc->read->posted) {
+            ngx_delete_posted_event(sc->read);
+        }
+
+        ngx_post_event(sc->read, &posted_events);
     }
+
+    ngx_event_process_posted((ngx_cycle_t *) ngx_cycle, &posted_events);
 
     if (tree->root == tree->sentinel) {
         return NGX_OK;
@@ -272,7 +280,7 @@ ngx_quic_do_reset_stream(ngx_quic_stream_t *qs, ngx_uint_t err)
         return NGX_ERROR;
     }
 
-    frame->level = ssl_encryption_application;
+    frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
     frame->type = NGX_QUIC_FT_RESET_STREAM;
     frame->u.reset_stream.id = qs->id;
     frame->u.reset_stream.error_code = err;
@@ -359,7 +367,7 @@ ngx_quic_shutdown_stream_recv(ngx_connection_t *c)
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, pc->log, 0,
                    "quic stream id:0x%xL recv shutdown", qs->id);
 
-    frame->level = ssl_encryption_application;
+    frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
     frame->type = NGX_QUIC_FT_STOP_SENDING;
     frame->u.stop_sending.id = qs->id;
     frame->u.stop_sending.error_code = qc->conf->stream_close_code;
@@ -519,7 +527,7 @@ ngx_quic_reject_stream(ngx_connection_t *c, uint64_t id)
         return NGX_ERROR;
     }
 
-    frame->level = ssl_encryption_application;
+    frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
     frame->type = NGX_QUIC_FT_RESET_STREAM;
     frame->u.reset_stream.id = id;
     frame->u.reset_stream.error_code = code;
@@ -532,7 +540,7 @@ ngx_quic_reject_stream(ngx_connection_t *c, uint64_t id)
         return NGX_ERROR;
     }
 
-    frame->level = ssl_encryption_application;
+    frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
     frame->type = NGX_QUIC_FT_STOP_SENDING;
     frame->u.stop_sending.id = id;
     frame->u.stop_sending.error_code = code;
@@ -1054,7 +1062,7 @@ ngx_quic_stream_flush(ngx_quic_stream_t *qs)
         return NGX_ERROR;
     }
 
-    frame->level = ssl_encryption_application;
+    frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
     frame->type = NGX_QUIC_FT_STREAM;
     frame->data = out;
 
@@ -1172,7 +1180,7 @@ ngx_quic_close_stream(ngx_quic_stream_t *qs)
             return NGX_ERROR;
         }
 
-        frame->level = ssl_encryption_application;
+        frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
         frame->type = NGX_QUIC_FT_MAX_STREAMS;
 
         if (qs->id & NGX_QUIC_STREAM_UNIDIRECTIONAL) {
@@ -1763,7 +1771,7 @@ ngx_quic_update_max_stream_data(ngx_quic_stream_t *qs)
         return NGX_ERROR;
     }
 
-    frame->level = ssl_encryption_application;
+    frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
     frame->type = NGX_QUIC_FT_MAX_STREAM_DATA;
     frame->u.max_stream_data.id = qs->id;
     frame->u.max_stream_data.limit = qs->recv_max_data;
@@ -1799,7 +1807,7 @@ ngx_quic_update_max_data(ngx_connection_t *c)
         return NGX_ERROR;
     }
 
-    frame->level = ssl_encryption_application;
+    frame->level = NGX_QUIC_ENCRYPTION_APPLICATION;
     frame->type = NGX_QUIC_FT_MAX_DATA;
     frame->u.max_data.max_data = qc->streams.recv_max_data;
 
