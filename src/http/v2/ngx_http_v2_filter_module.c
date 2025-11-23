@@ -32,7 +32,8 @@ static ngx_int_t ngx_http_v2_early_hints_filter(ngx_http_request_t *r);
 static ngx_int_t ngx_http_v2_init_stream(ngx_http_request_t *r);
 
 static ngx_http_v2_out_frame_t *ngx_http_v2_create_headers_frame(
-    ngx_http_request_t *r, u_char *pos, u_char *end, ngx_uint_t fin);
+    ngx_http_request_t *r, u_char *pos, u_char *end, ngx_uint_t fin,
+    ngx_uint_t flush);
 static ngx_http_v2_out_frame_t *ngx_http_v2_create_trailers_frame(
     ngx_http_request_t *r);
 
@@ -545,7 +546,7 @@ ngx_http_v2_header_filter(ngx_http_request_t *r)
     fin = r->header_only
           || (r->headers_out.content_length_n == 0 && !r->expect_trailers);
 
-    frame = ngx_http_v2_create_headers_frame(r, start, pos, fin);
+    frame = ngx_http_v2_create_headers_frame(r, start, pos, fin, 0);
     if (frame == NULL) {
         return NGX_ERROR;
     }
@@ -710,7 +711,7 @@ ngx_http_v2_early_hints_filter(ngx_http_request_t *r)
                                       header[i].value.len, tmp);
     }
 
-    frame = ngx_http_v2_create_headers_frame(r, start, pos, 0);
+    frame = ngx_http_v2_create_headers_frame(r, start, pos, 0, 1);
     if (frame == NULL) {
         return NGX_ERROR;
     }
@@ -761,7 +762,7 @@ ngx_http_v2_init_stream(ngx_http_request_t *r)
 
 static ngx_http_v2_out_frame_t *
 ngx_http_v2_create_headers_frame(ngx_http_request_t *r, u_char *pos,
-    u_char *end, ngx_uint_t fin)
+    u_char *end, ngx_uint_t fin, ngx_uint_t flush)
 {
     u_char                    type, flags;
     size_t                    rest, frame_size;
@@ -852,6 +853,7 @@ ngx_http_v2_create_headers_frame(ngx_http_request_t *r, u_char *pos,
         }
 
         b->last_buf = fin;
+        b->flush = flush;
         cl->next = NULL;
         frame->last = cl;
 
@@ -974,7 +976,7 @@ ngx_http_v2_create_trailers_frame(ngx_http_request_t *r)
                                       header[i].value.len, tmp);
     }
 
-    return ngx_http_v2_create_headers_frame(r, start, pos, 1);
+    return ngx_http_v2_create_headers_frame(r, start, pos, 1, 0);
 }
 
 

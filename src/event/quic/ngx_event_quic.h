@@ -12,16 +12,14 @@
 #include <ngx_core.h>
 
 
-#ifdef OSSL_RECORD_PROTECTION_LEVEL_NONE
-#ifndef NGX_QUIC_OPENSSL_API
-#define NGX_QUIC_BORINGSSL_API               1
-#define NGX_QUIC_OPENSSL_COMPAT              1
-#endif
+#if (OPENSSL_VERSION_NUMBER >= 0x30500010L)
+#define NGX_QUIC_OPENSSL_API                 1
 
 #elif (defined SSL_R_MISSING_QUIC_TRANSPORT_PARAMETERS_EXTENSION)
 #define NGX_QUIC_QUICTLS_API                 1
 
-#elif (defined OPENSSL_IS_BORINGSSL || defined LIBRESSL_VERSION_NUMBER)
+#elif (defined OPENSSL_IS_BORINGSSL || defined OPENSSL_IS_AWSLC               \
+       || defined LIBRESSL_VERSION_NUMBER)
 #define NGX_QUIC_BORINGSSL_API               1
 
 #else
