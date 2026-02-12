@@ -22,7 +22,7 @@ LDFLAGS="-Wl,-z,relro,-z,now"
 
 PREFIX=/opt/nginx
 SBIN=/sbin/nginx
-CONFPATH=/etc/nginx
+CONFPATH=/etc/nginx/nginx.conf
 LOGPATH=/var/log
 TMPPATH=/tmp
 PIDPATH=/run
