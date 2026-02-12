@@ -5,7 +5,891 @@
 <change_log title="nginx">
 
 
-<changes ver="1.26.1" date="2024-05-29">
+<changes ver="1.29.5" date="2026-02-04">
+
+<change type="security">
+<para lang="ru">
+атакующий мог вставить незашифрованные данные в ответ от
+SSL-бэкенда (CVE-2026-1642).
+</para>
+<para lang="en">
+an attacker might inject plain text data in the response from an SSL
+backend (CVE-2026-1642).
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+обращение к ранее освобождённой памяти могло произойти после
+переключения на следующий gRPC- или HTTP/2-бэкенд.
+</para>
+<para lang="en">
+use-after-free might occur after switching to the next
+gRPC or HTTP/2 backend.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+некорректный HTTP/2-запрос мог быть отправлен после переключения
+на следующий бэкенд.
+</para>
+<para lang="en">
+an invalid HTTP/2 request might be sent after switching to the next
+upstream.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+ответ с несколькими диапазонами мог быть больше, чем исходный ответ.
+</para>
+<para lang="en">
+a response with multiple ranges might be larger than the source
+response.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+исправлена установка переменной HTTP_HOST при проксировании на
+FastCGI-, SCGI- и uwsgi-бэкенды.
+</para>
+<para lang="en">
+fixed setting HTTP_HOST when proxying to FastCGI, SCGI,
+and uwsgi backends.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+устранено предупреждение при компиляции при помощи MSVC 2022 x86.
+</para>
+<para lang="en">
+fixed warning when compiling with MSVC 2022 x86.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+уровень логгирования ошибки SSL "ech_required"
+понижен с уровня crit до info.
+</para>
+<para lang="en">
+the logging level of the "ech_required" SSL error
+has been lowered from "crit" to "info".
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.29.4" date="2025-12-09">
+
+<change type="feature">
+<para lang="ru">
+модуль ngx_http_proxy_module поддерживает HTTP/2.
+</para>
+<para lang="en">
+the ngx_http_proxy_module supports HTTP/2.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+поддержка расширения TLS Encrypted ClientHello
+при использовании ветки разработки ECH OpenSSL;
+директива ssl_ech_file.<br/>
+Спасибо Stephen Farrell.
+</para>
+<para lang="en">
+Encrypted ClientHello TLS extension support
+when using OpenSSL ECH feature branch;
+the "ssl_ech_file" directive.<br/>
+Thanks to Stephen Farrell.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+валидация хоста и порта в строке запроса,
+в заголовке "Host" и псевдо-заголовке ":authority"
+изменена на соответствующую RFC 3986.
+</para>
+<para lang="en">
+validation of host and port in the request line,
+"Host" header field, and ":authority" pseudo-header field
+has been changed to follow RFC 3986.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+теперь одиночный символ LF, используемый для перевода строки
+в chunked-теле запроса или ответа, считается ошибкой.
+</para>
+<para lang="en">
+now a single LF used as a line terminator
+in a chunked request or response body is considered an error.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+при использовании HTTP/3 с OpenSSL 3.5.1 и новее
+в рабочем процессе мог произойти segmentation fault;
+ошибка появилась в 1.29.1.<br/>
+Спасибо Jan Svojanovsky.
+</para>
+<para lang="en">
+when using HTTP/3 with OpenSSL 3.5.1 or newer
+a segmentation fault might occur in a worker process;
+the bug had appeared in 1.29.1.<br/>
+Thanks to Jan Svojanovsky.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+при совместном использовании директив try_files и proxy_pass с URI
+в рабочем процессе мог произойти segmentation fault.
+</para>
+<para lang="en">
+a segmentation fault might occur in a worker process
+if the "try_files" directive and "proxy_pass" with a URI were used.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.29.3" date="2025-10-28">
+
+<change type="feature">
+<para lang="ru">
+директивы add_header_inherit и add_trailer_inherit.
+</para>
+<para lang="en">
+the "add_header_inherit" and "add_trailer_inherit" directives.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+переменные $request_port и $is_request_port.
+</para>
+<para lang="en">
+the $request_port and $is_request_port variables.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+переменные $ssl_sigalg и $ssl_client_sigalg.
+</para>
+<para lang="en">
+the $ssl_sigalg and $ssl_client_sigalg variables.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+параметр volatile директивы geo.
+</para>
+<para lang="en">
+the "volatile" parameter of the "geo" directive.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+теперь сжатие сертификатов доступно с BoringSSL.
+</para>
+<para lang="en">
+now certificate compression is available with BoringSSL.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+теперь сжатие сертификатов запрещено при включенном OCSP stapling.
+</para>
+<para lang="en">
+now certificate compression is disabled with OCSP stapling.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.29.2" date="2025-10-07">
+
+<change type="feature">
+<para lang="ru">
+теперь nginx можно собрать с AWS-LC.<br/>
+Спасибо Samuel Chiang.
+</para>
+<para lang="en">
+now nginx can be built with AWS-LC.<br/>
+Thanks Samuel Chiang.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+теперь директива ssl_protocols работает
+в виртуальном сервере, отличном от сервера по умолчанию,
+при использовании OpenSSL 1.1.1 и новее.
+</para>
+<para lang="en">
+now the "ssl_protocols" directive works
+in a virtual server different from the default server
+when using OpenSSL 1.1.1 or newer.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+при использовании TLSv1.3 с OpenSSL и клиентских сертификатов
+SSL handshake всегда завершался ошибкой
+при восстановлении сессии с другим значением SNI;
+ошибка появилась в 1.27.4.
+</para>
+<para lang="en">
+SSL handshake always failed
+when using TLSv1.3 with OpenSSL and client certificates
+and resuming a session with a different SNI value;
+the bug had appeared in 1.27.4.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+при использовании QUIC и директивы ssl_reject_handshake
+в логах могли появляться сообщения
+"ignoring stale global SSL error";
+ошибка появилась в 1.29.0.<br/>
+Спасибо Владимиру Хомутову.
+</para>
+<para lang="en">
+the "ignoring stale global SSL error"
+alerts might appear in logs
+when using QUIC and the "ssl_reject_handshake" directive;
+the bug had appeared in 1.29.0.<br/>
+Thanks to Vladimir Homutov.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в обработке delta-seconds
+в строке "Cache-Control" в заголовке ответа бэкенда.
+</para>
+<para lang="en">
+in delta-seconds processing
+in the "Cache-Control" backend response header line.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+команда XCLIENT не использовала кодировку xtext.<br/>
+Спасибо Igor Morgenstern из Aisle Research.
+</para>
+<para lang="en">
+an XCLIENT command didn't use the xtext encoding.<br/>
+Thanks to Igor Morgenstern of Aisle Research.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в кешировании SSL-сертификатов во время переконфигурации.
+</para>
+<para lang="en">
+in SSL certificate caching during reconfiguration.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.29.1" date="2025-08-13">
+
+<change type="security">
+<para lang="ru">
+обработка специально созданного логина/пароля при использовании
+метода аутентификации "none" в модуле ngx_mail_smtp_module
+могла приводить к отправке серверу аутентификации
+части содержимого памяти рабочего процесса (CVE-2025-53859).
+</para>
+<para lang="en">
+processing of a specially crafted login/password when using
+the "none" authentication method in the ngx_mail_smtp_module
+might cause worker process memory disclosure
+to the authentication server (CVE-2025-53859).
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+теперь сжатие сертификатов в протоколе TLSv1.3 по умолчанию запрещено.
+</para>
+<para lang="en">
+now TLSv1.3 certificate compression is disabled by default.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+директива ssl_certificate_compression.
+</para>
+<para lang="en">
+the "ssl_certificate_compression" directive.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+поддержка 0-RTT в QUIC при использовании OpenSSL 3.5.1 и новее.
+</para>
+<para lang="en">
+support for 0-RTT in QUIC when using OpenSSL 3.5.1 or newer.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+при использовании HTTP/2 и директивы early_hints
+ответ 103 мог буферизироваться.
+</para>
+<para lang="en">
+the 103 response might be buffered
+when using HTTP/2 and the "early_hints" directive.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в обработке заголовков запроса "Host" и ":authority"
+с одинаковыми значениями при использовании HTTP/2;
+ошибка появилась в 1.17.9.
+</para>
+<para lang="en">
+in handling "Host" and ":authority" header lines
+with equal values when using HTTP/2;
+the bug had appeared in 1.17.9.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в обработке заголовка запроса "Host" с портом
+при использовании HTTP/3.
+</para>
+<para lang="en">
+in handling "Host" header lines with a port
+when using HTTP/3.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+nginx не собирался под NetBSD 10.0.
+</para>
+<para lang="en">
+nginx could not be built on NetBSD 10.0.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в работе параметра none директивы smtp_auth.
+</para>
+<para lang="en">
+in the "none" parameter of the "smtp_auth" directive.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.29.0" date="2025-06-24">
+
+<change type="feature">
+<para lang="ru">
+поддержка ответа с кодом 103 от proxy- и gRPC-бэкендов;
+директива early_hints.
+</para>
+<para lang="en">
+support for response code 103 from proxy and gRPC backends;
+the "early_hints" directive.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+возможность загрузки секретных ключей с аппаратных устройств
+с помощью OpenSSL provider.
+</para>
+<para lang="en">
+loading of secret keys from hardware tokens
+with OpenSSL provider.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+поддержка параметра so_keepalive директивы listen на macOS.
+</para>
+<para lang="en">
+support for the "so_keepalive" parameter of the "listen" directive on macOS.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+уровень логгирования ошибок SSL в QUIC handshake
+изменён с уровня error на crit для критических ошибок
+и на info для всех остальных;
+уровень логгирования неподдерживаемых транспортных параметров QUIC
+понижен с уровня info до debug.
+</para>
+<para lang="en">
+the logging level of SSL errors in a QUIC handshake
+has been changed from "error" to "crit" for critical errors,
+and to "info" for the rest;
+the logging level of unsupported QUIC transport parameters
+has been lowered from "info" to "debug".
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+бинарная версия nginx/Windows теперь использует для сборки Windows SDK 10.
+</para>
+<para lang="en">
+the native nginx/Windows binary release is now built using Windows SDK 10.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+nginx не собирался gcc 15,
+если использовались модули ngx_http_v2_module и ngx_http_v3_module.
+</para>
+<para lang="en">
+nginx could not be built by gcc 15
+if ngx_http_v2_module or ngx_http_v3_module modules were used.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+nginx мог не собираться gcc 14 и новее с оптимизацией -O3 -flto,
+если использовался модуль ngx_http_v3_module.
+</para>
+<para lang="en">
+nginx might not be built by gcc 14 or newer with -O3 -flto optimization
+if ngx_http_v3_module was used.
+</para>
+</change>
+
+<change>
+<para lang="ru">
+Исправления и улучшения в HTTP/3.
+</para>
+<para lang="en">
+Bugfixes and improvements in HTTP/3.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.27.5" date="2025-04-16">
+
+<change type="feature">
+<para lang="ru">
+контроль перегрузки CUBIC в соединениях QUIC.
+</para>
+<para lang="en">
+CUBIC congestion control in QUIC connections.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+ограничение на максимальный размер кешируемых в разделяемой памяти
+SSL-сессий поднято до 8192.
+</para>
+<para lang="en">
+the maximum size limit for SSL sessions cached in shared memory
+has been raised to 8192.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в директивах grpc_ssl_password_file, proxy_ssl_password_file и
+uwsgi_ssl_password_file
+при загрузке SSL-сертификатов и зашифрованных ключей из переменных;
+ошибка появилась в 1.23.1.
+</para>
+<para lang="en">
+in the "grpc_ssl_password_file", "proxy_ssl_password_file", and
+"uwsgi_ssl_password_file" directives
+when loading SSL certificates and encrypted keys from variables;
+the bug had appeared in 1.23.1.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в переменных $ssl_curve и $ssl_curves
+при использовании подключаемых кривых в OpenSSL.
+</para>
+<para lang="en">
+in the $ssl_curve and $ssl_curves variables
+when using pluggable curves in OpenSSL.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+nginx не собирался с musl libc.<br/>
+Спасибо Piotr Sikora.
+</para>
+<para lang="en">
+nginx could not be built with musl libc.<br/>
+Thanks to Piotr Sikora.
+</para>
+</change>
+
+<change>
+<para lang="ru">
+Улучшения производительности и исправления в HTTP/3.
+</para>
+<para lang="en">
+Performance improvements and bugfixes in HTTP/3.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.27.4" date="2025-02-05">
+
+<change type="security">
+<para lang="ru">
+недостаточная проверка в обработке виртуальных серверов
+при использовании SNI в TLSv1.3 позволяла повторно использовать
+SSL-сессию в контексте другого виртуального сервера,
+чтобы обойти проверку клиентских SSL-сертификатов (CVE-2025-23419).
+</para>
+<para lang="en">
+insufficient check in virtual servers handling with TLSv1.3 SNI
+allowed to reuse SSL sessions in a different virtual server,
+to bypass client SSL certificates verification (CVE-2025-23419).
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+директивы ssl_object_cache_inheritable, ssl_certificate_cache,
+proxy_ssl_certificate_cache, grpc_ssl_certificate_cache
+и uwsgi_ssl_certificate_cache.
+</para>
+<para lang="en">
+the "ssl_object_cache_inheritable", "ssl_certificate_cache",
+"proxy_ssl_certificate_cache", "grpc_ssl_certificate_cache",
+and "uwsgi_ssl_certificate_cache" directives.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+директива keepalive_min_timeout.
+</para>
+<para lang="en">
+the "keepalive_min_timeout" directive.
+</para>
+</change>
+
+<change type="workaround">
+<para lang="ru">
+при использовании zlib-ng
+в логах появлялись сообщения "gzip filter failed to use preallocated memory".
+</para>
+<para lang="en">
+"gzip filter failed to use preallocated memory" alerts appeared in logs
+when using zlib-ng.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+nginx не мог собрать библиотеку libatomic из исходных текстов,
+если использовался параметр --with-libatomic=DIR.
+</para>
+<para lang="en">
+nginx could not build libatomic library using the library sources
+if the --with-libatomic=DIR option was used.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+могла происходить ошибка установления соединения
+при использовании 0-RTT в QUIC;
+ошибка появилась в 1.27.1.
+</para>
+<para lang="en">
+QUIC connection might not be established when using 0-RTT;
+the bug had appeared in 1.27.1.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+теперь nginx игнорирует пакеты согласования версий QUIC от клиентов.
+</para>
+<para lang="en">
+nginx now ignores QUIC version negotiation packets from clients.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+nginx не собирался на Solaris 10 и более ранних
+с модулем ngx_http_v3_module.
+</para>
+<para lang="en">
+nginx could not be built on Solaris 10 and earlier
+with the ngx_http_v3_module.
+</para>
+</change>
+
+<change>
+<para lang="ru">
+Исправления в HTTP/3.
+</para>
+<para lang="en">
+Bugfixes in HTTP/3.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.27.3" date="2024-11-26">
+
+<change type="feature">
+<para lang="ru">
+директива server в блоке upstream поддерживает
+параметр resolve.
+</para>
+<para lang="en">
+the "server" directive in the "upstream" block supports
+the "resolve" parameter.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+директивы resolver и resolver_timeout в блоке upstream.
+</para>
+<para lang="en">
+the "resolver" and "resolver_timeout" directives in the "upstream" block.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+поддержка SmarterMail-специфичного режима
+IMAP LOGIN с нетегированным ответом CAPABILITY
+в почтовом прокси-сервере.
+</para>
+<para lang="en">
+SmarterMail specific mode support
+for IMAP LOGIN with untagged CAPABILITY response
+in the mail proxy module.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+теперь протоколы TLSv1 и TLSv1.1 по умолчанию запрещены.
+</para>
+<para lang="en">
+now TLSv1 and TLSv1.1 protocols are disabled by default.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+IPv6-адрес в квадратных скобках без порта теперь можно указывать
+в директивах proxy_bind, fastcgi_bind, grpc_bind, memcached_bind,
+scgi_bind и uwsgi_bind,
+а также как адрес клиента в модуле ngx_http_realip_module.
+</para>
+<para lang="en">
+an IPv6 address in square brackets and no port can be specified
+in the "proxy_bind", "fastcgi_bind", "grpc_bind", "memcached_bind",
+"scgi_bind", and "uwsgi_bind" directives,
+and as client address in ngx_http_realip_module.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в модуле ngx_http_mp4_module.<br/>
+Спасибо Nils Bars.
+</para>
+<para lang="en">
+in the ngx_http_mp4_module.<br/>
+Thanks to Nils Bars.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+параметр so_keepalive директивы listen
+мог работать некорректно на DragonFly BSD.
+</para>
+<para lang="en">
+the "so_keepalive" parameter of the "listen" directive
+might be handled incorrectly on DragonFly BSD.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+в директиве proxy_store.
+</para>
+<para lang="en">
+in the "proxy_store" directive.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.27.2" date="2024-10-02">
+
+<change type="feature">
+<para lang="ru">
+SSL-сертификаты, секретные ключи и списки CRL теперь кешируются
+на старте или во время переконфигурации.
+</para>
+<para lang="en">
+SSL certificates, secret keys, and CRLs are now cached
+on start or during reconfiguration.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+проверка клиентских сертификатов с помощью OCSP в модуле stream.
+</para>
+<para lang="en">
+client certificate validation with OCSP in the stream module.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+поддержка OCSP stapling в модуле stream.
+</para>
+<para lang="en">
+OCSP stapling support in the stream module.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+директива proxy_pass_trailers в модуле ngx_http_proxy_module.
+</para>
+<para lang="en">
+the "proxy_pass_trailers" directive in the ngx_http_proxy_module.
+</para>
+</change>
+
+<change type="feature">
+<para lang="ru">
+директива ssl_client_certificate теперь поддерживает сертификаты
+с дополнительными данными.
+</para>
+<para lang="en">
+the "ssl_client_certificate" directive now supports certificates
+with auxiliary information.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+теперь наличие директивы ssl_client_certificate не обязательно
+для проверки клиентских SSL-сертификатов.
+</para>
+<para lang="en">
+now the "ssl_client_certificate" directive is not required
+for client SSL certificates verification.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.27.1" date="2024-08-14">
+
+<change type="security">
+<para lang="ru">
+обработка специально созданного mp4-файла модулем ngx_http_mp4_module
+могла приводить к падению рабочего процесса (CVE-2024-7347).<br/>
+Спасибо Nils Bars.
+</para>
+<para lang="en">
+processing of a specially crafted mp4 file by the ngx_http_mp4_module
+might cause a worker process crash (CVE-2024-7347).<br/>
+Thanks to Nils Bars.
+</para>
+</change>
+
+<change type="change">
+<para lang="ru">
+теперь обработчик в модуле stream не является обязательным.
+</para>
+<para lang="en">
+now the stream module handler is not mandatory.
+</para>
+</change>
+
+<change type="bugfix">
+<para lang="ru">
+новые HTTP/2-соединения могли игнорировать
+плавное завершение старых рабочих процессов.<br/>
+Спасибо Kasei Wang.
+</para>
+<para lang="en">
+new HTTP/2 connections might ignore
+graceful shutdown of old worker processes.<br/>
+Thanks to Kasei Wang.
+</para>
+</change>
+
+<change>
+<para lang="ru">
+Исправления в HTTP/3.
+</para>
+<para lang="en">
+Bugfixes in HTTP/3.
+</para>
+</change>
+
+</changes>
+
+
+<changes ver="1.27.0" date="2024-05-29">
 
 <change type="security">
 <para lang="ru">
@@ -25,6 +909,18 @@ Thanks to Nils Bars of CISPA.
 </para>
 </change>
 
+<change type="feature">
+<para lang="ru">
+директивы proxy_limit_rate, fastcgi_limit_rate,
+scgi_limit_rate и uwsgi_limit_rate поддерживают переменные.
+</para>
+<para lang="en">
+variables support
+in the "proxy_limit_rate", "fastcgi_limit_rate", "scgi_limit_rate",
+and "uwsgi_limit_rate" directives.
+</para>
+</change>
+
 <change type="bugfix">
 <para lang="ru">
 уменьшено потребление памяти для долгоживущих запросов,
@@ -39,36 +935,22 @@ if "gzip", "gunzip", "ssi", "sub_filter", or "grpc_pass" directives are used.
 <change type="bugfix">
 <para lang="ru">
 nginx не собирался gcc 14,
-если использовался параметр --with-atomic.<br/>
+если использовался параметр --with-libatomic.<br/>
 Спасибо Edgar Bonet.
 </para>
 <para lang="en">
 nginx could not be built by gcc 14
-if the --with-atomic option was used.<br/>
+if the --with-libatomic option was used.<br/>
 Thanks to Edgar Bonet.
 </para>
 </change>
 
-<change type="bugfix">
-<para lang="ru">
-в HTTP/3.
-</para>
-<para lang="en">
-in HTTP/3.
-</para>
-</change>
-
-</changes>
-
-
-<changes ver="1.26.0" date="2024-04-23">
-
 <change>
 <para lang="ru">
-Стабильная ветка 1.26.x.
+Исправления в HTTP/3.
 </para>
 <para lang="en">
-1.26.x stable branch.
+Bugfixes in HTTP/3.
 </para>
 </change>
 
@@ -8163,7 +9045,7 @@ Thanks to Piotr Sikora.
 Спасибо Piotr Sikora.
 </para>
 <para lang="en">
-now nginx can be build with BoringSSL and LibreSSL.<br/>
+now nginx can be built with BoringSSL and LibreSSL.<br/>
 Thanks to Piotr Sikora.
 </para>
 </change>
@@ -25446,7 +26328,7 @@ the ECONNABORTED error log level was changed to "error" from "crit".
 модуль ngx_http_perl_module не собирался без модуля ngx_http_ssi_filter_module.
 </para>
 <para lang="en">
-the ngx_http_perl_module could not be build without
+the ngx_http_perl_module could not be built without
 the ngx_http_ssi_filter_module.
 </para>
 </change>
