@@ -1,4 +1,4 @@
 [submodule "openssl"]
-	path = openssl
+	path = deps/openssl
 	url = https://github.com/openssl/openssl
 	branch = openssl-3.6
