@@ -4,11 +4,10 @@ LABEL title="nginx modification for SIDEL Incorporated."
 LABEL maintainer="Kangjun Heo <kheo@sidelcorp.com>"
 
 RUN apk --update add git alpine-sdk
-RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
-RUN git clone https://github.com/SIDEL-INC/nginx 
+RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev perl linux-headers
+RUN git clone --recursive https://github.com/SIDEL-INC/nginx
 
 WORKDIR /nginx
-RUN git clone -b openssl-3.6 https://github.com/openssl/openssl
 
 RUN chmod +x build.sh
 RUN ./build.sh
@@ -22,7 +21,7 @@ COPY --from=build /opt/nginx /opt/nginx
 RUN  mkdir /logs
 RUN  mkdir /run/ws
 
-RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
+#RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
 
 RUN adduser user --disabled-password
 RUN chown -R user:user /logs
