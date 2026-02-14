@@ -5,9 +5,11 @@ LABEL maintainer="Kangjun Heo <kheo@sidelcorp.com>"
 
 RUN apk --update add git alpine-sdk
 RUN apk add pcre2-dev pcre-dev openssl-dev gzip zlib-dev
-
 RUN git clone https://github.com/SIDEL-INC/nginx 
+
 WORKDIR /nginx
+RUN git clone -b openssl-3.6 https://github.com/openssl/openssl
+
 RUN chmod +x build.sh
 RUN ./build.sh
 
