@@ -36,3 +36,6 @@ make clean
 ./configure $DEPENDENCIES $MODULES --prefix=$PREFIX --conf-path=$CONFPATH --sbin-path=$SBIN --http-client-body-temp-path=$TMPPATH/body_temp --http-log-path=$LOGPATH/server.log --error-log-path=$LOGPATH/error.log --http-proxy-temp-path=$TMPPATH/proxy_temp --pid-path=$PIDPATH/ws.pid --lock-path=$PIDPATH/ws.lock --with-cc-opt="$CFLAGS" --with-ld-opt="$LDFLAGS"
 
 make -j $(nproc)
+
+# make nginx stripped
+strip objs/nginx
